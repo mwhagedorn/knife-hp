@@ -153,8 +153,8 @@ class Chef
           )
 
         #request and assign a floating IP for the server
-        address = connection.addresses.create()
-        Chef::Log.debug("Floating IP #{address.ip}")
+        #address = connection.addresses.create()
+        #Chef::Log.debug("Floating IP #{address.ip}")
 
         #servers require a name, generate one if not passed
         node_name = get_node_name(config[:chef_node_name], address.ip)
@@ -187,9 +187,9 @@ class Chef
       # wait for it to be ready to do stuff
       server.wait_for { print "."; ready? }
 
-      address.server = server
-
-      server.wait_for { print "."; ready? }
+      ##address.server = server
+      #
+      #server.wait_for { print "."; ready? }
 
       puts("\n")
 
@@ -203,7 +203,7 @@ class Chef
       sleep 30
       print(".")
 
-      print(".") until tcp_test_ssh(server.public_ip_address) {
+      print(".") until tcp_test_ssh(server.private_ip_address) {
         sleep @initial_sleep_delay ||= 10
         puts("done")
       }
@@ -217,7 +217,7 @@ class Chef
       msg_pair("Image", server.image['id'])
       #msg_pair("Security Group(s)", server.security_groups.join(", "))
       msg_pair("SSH Key Pair", server.key_name)
-      msg_pair("Public IP Address", server.public_ip_address)
+      #msg_pair("Public IP Address", server.public_ip_address)
       msg_pair("Private IP Address", server.private_ip_address)
       msg_pair("Environment", config[:environment] || '_default')
       msg_pair("Run List", config[:run_list].join(', '))

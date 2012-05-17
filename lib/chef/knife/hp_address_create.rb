@@ -1,5 +1,5 @@
 #
-# Author:: Matt Ray (<matt@opscode.com>)
+# Author:: Mike Hagedorn (<mike.hagedorn@hp.com>)
 # Copyright:: Copyright (c) 2012 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
@@ -20,33 +20,43 @@ require 'chef/knife/hp_base'
 
 class Chef
   class Knife
-    class HpImageList < Knife
+    class HpAddressCreate < Knife
 
       include Knife::HpBase
 
-      banner "knife hp image list (options)"
+      banner "knife hp address create (options)"
 
       def run
 
         validate!
 
-        image_list = [
-          ui.color('ID', :bold),
-          ui.color('Name', :bold),
+        address = connection.addresses.create
+        ip      = address.ip
+
+
+        msg_pair("Public IP Address", ip)
+
+        address_list = [
+            ui.color('ID', :bold),
+            ui.color('IP', :bold),
+            ui.color('Fixed IP', :bold),
+            ui.color('Instance ID', :bold)
         ]
 
-        connection.images.sort_by do |image|
-          [image.name.downcase, image.id].compact
-        end.each do |image|
-          image_list << image.id
-          image_list << image.name
+        connection.addresses do |adr|
+          address_list << adr.id
+          address_list << adr.ip
+          address_list << adr.fixed_ip
+          address_list << adr.instance_id
         end
 
-        image_list = image_list.map do |item|
+
+        address_list = address_list.map do |item|
           item.to_s
         end
 
-        puts ui.list(image_list, :uneven_columns_across, 2)
+        puts ui.list(address_list, :uneven_columns_across, 4)
+
       end
     end
   end
