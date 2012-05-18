@@ -26,16 +26,31 @@ class Chef
 
       banner "knife hp image list (options)"
 
+      option :type,
+             :short       => "-t IMAGE_TYPE",
+             :long        => "--type IMAGE_TYPE",
+             :description => "list the images, optionally filtering by type (machine|kernel|ramdisk)"
+
       def run
 
         validate!
 
         image_list = [
-          ui.color('ID', :bold),
-          ui.color('Name', :bold),
+            ui.color('ID', :bold),
+            ui.color('Name', :bold),
         ]
 
-        connection.images.sort_by do |image|
+        if config[:type] == "machine"
+          @images = machine_images
+        elsif config[:type] == "kernel"
+          @images = kernel_images
+        elsif config[:type] == "ramdisk"
+          @images = ramdisk_images
+        else
+          @images = connection.images
+        end
+
+        @images.sort_by do |image|
           [image.name.downcase, image.id].compact
         end.each do |image|
           image_list << image.id
@@ -48,6 +63,31 @@ class Chef
 
         puts ui.list(image_list, :uneven_columns_across, 2)
       end
+    end
+
+    def machine_images
+      connection.images.select { |i| machine_image?(i) }
+    end
+
+    def kernel_images
+      connection.images.select { |i| kernel_image?(i) }
+    end
+
+    def ramdisk_images
+         connection.images.select { |i| ramdisk_image?(i) }
+       end
+
+    def machine_image?(image)
+      # TODO rework this when openstack api provides kernal vs machine image metadata
+      !image.name.match(/Kernel/) && !image.name.match(/Ramdisk/)
+    end
+
+    def kernel_image?(image)
+       image.name.match(/Kernel/)
+    end
+
+    def ramdisk_image?(image)
+       image.name.match(/Ramdisk/)
     end
   end
 end

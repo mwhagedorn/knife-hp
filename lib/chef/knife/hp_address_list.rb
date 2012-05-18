@@ -37,14 +37,14 @@ class Chef
             ui.color('Instance ID', :bold)
         ]
 
-        connection.addresses do |adr|
+        connection.addresses.each  do |adr|
           address_list << adr.id
           address_list << adr.ip
           address_list << adr.fixed_ip
           address_list << adr.instance_id
         end
 
-
+        Chef::Log.debug("addresses: #{address_list.inspect}")
         address_list = address_list.map do |item|
           item.to_s
         end

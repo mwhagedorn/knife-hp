@@ -31,6 +31,7 @@ class Chef
             require 'fog'
             require 'readline'
             require 'chef/json_compat'
+            require_relative("fog_debug")
           end
 
           option :hp_account_id,
@@ -85,6 +86,8 @@ class Chef
               }
           )
         end
+
+
       end
 
       def locate_config_value(key)

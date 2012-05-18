@@ -1,5 +1,5 @@
 #
-# Author:: Mike Hagedorn (<mike.hagedorn@hp.com>)
+# Author:: Matt Ray (<matt@opscode.com>)
 # Copyright:: Copyright (c) 2012 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
@@ -20,42 +20,40 @@ require 'chef/knife/hp_base'
 
 class Chef
   class Knife
-    class HpAddressCreate < Knife
+    class HpAddressUnassign < Knife
 
       include Knife::HpBase
 
-      banner "knife hp address create (options)"
+
+      banner "knife hp address unassign (options)"
+
+      option :address_id,
+             :short       => "-a ADDRESS_ID",
+             :long        => "--address ADDRESS_ID",
+             :description => "The id for the address to unassignr"
+
 
       def run
-
+        Chef::Log.debug("looking for address: #{config[:address_id]}")
         validate!
-
-        address = connection.addresses.create
-        ip      = address.ip
-
-
-        address_list = [
-            ui.color('ID', :bold),
-            ui.color('IP', :bold),
-            ui.color('Fixed IP', :bold),
-            ui.color('Instance ID', :bold)
-        ]
-
-
-          address_list << address.id
-          address_list << address.ip
-          address_list << address.fixed_ip
-          address_list << address.instance_id
-
-
-
-        address_list = address_list.map do |item|
-          item.to_s
-        end
-
-        puts ui.list(address_list, :uneven_columns_across, 4)
-
+        address.server = nil
+        print "\n#{ui.color("Address unassigned", :magenta)}"
       end
+
+
+
+      def address
+        @address ||= connection.addresses.get(config[:address_id].to_s)
+      end
+
+      def validate!
+
+        if address.nil?
+          ui.error("You have not provided a valid address ID.")
+          exit 1
+        end
+      end
+
     end
   end
 end
