@@ -143,21 +143,19 @@ class Chef
 
         validate!
 
-        connection = Fog::Compute.new(
-          :provider => 'HP',
-          :hp_account_id => Chef::Config[:knife][:hp_account_id],
-          :hp_secret_key => Chef::Config[:knife][:hp_secret_key],
-          :hp_tenant_id => Chef::Config[:knife][:hp_tenant_id],
-          :hp_auth_uri => locate_config_value(:hp_auth_uri),
-          :hp_avl_zone => locate_config_value(:hp_avl_zone).to_sym
-          )
+        #connection = Fog::Compute.new(
+        #  :provider => 'HP',
+        #  :hp_account_id => Chef::Config[:knife][:hp_account_id],
+        #  :hp_secret_key => Chef::Config[:knife][:hp_secret_key],
+        #  :hp_tenant_id => Chef::Config[:knife][:hp_tenant_id],
+        #  :hp_auth_uri => locate_config_value(:hp_auth_uri),
+        #  :hp_avl_zone => locate_config_value(:hp_avl_zone).to_sym
+        #  )
 
-        #request and assign a floating IP for the server
-        #address = connection.addresses.create()
-        #Chef::Log.debug("Floating IP #{address.ip}")
+
 
         #servers require a name, generate one if not passed
-        node_name = get_node_name(config[:chef_node_name], address.ip)
+        node_name = get_node_name(config[:chef_node_name], "Server - #{Time.new}")
 
         Chef::Log.debug("Name #{node_name}")
         Chef::Log.debug("Flavor #{locate_config_value(:flavor)}")
@@ -179,17 +177,13 @@ class Chef
       msg_pair("Instance Name", server.name)
       msg_pair("Flavor", server.flavor['id'])
       msg_pair("Image", server.image['id'])
-      #msg_pair("Security Group(s)", server.security_groups.join(", "))
+      msg_pair("Security Group(s)", server.security_groups.collect{|sg| sg["name"]}.join(", "))
       msg_pair("SSH Key Pair", server.key_name)
 
       print "\n#{ui.color("Waiting for server", :magenta)}"
 
       # wait for it to be ready to do stuff
       server.wait_for { print "."; ready? }
-
-      ##address.server = server
-      #
-      #server.wait_for { print "."; ready? }
 
       puts("\n")
 
@@ -203,7 +197,7 @@ class Chef
       sleep 30
       print(".")
 
-      print(".") until tcp_test_ssh(server.private_ip_address) {
+      print(".") until tcp_test_ssh(server.public_ip_address) {
         sleep @initial_sleep_delay ||= 10
         puts("done")
       }
